@@ -1,0 +1,72 @@
+services:
+  - type: worker
+    plan: free
+    name: autofilterbot
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python bot.py
+    repo: https://github.com/JadejaShu/latest-valentina
+    branch: main
+    autoDeploy: True
+    envVars:
+      - key: BOT_TOKEN
+        sync: True
+      - key: API_ID
+        sync: True
+      - key: API_HASH
+        sync: True
+      - key: FORCE_SUB
+        sync: True
+      - key: LOG_CHANNEL
+        sync: True
+      - key: DATABASE_NAME
+        sync: True
+      - key: DATABASE_URL
+        sync: True
+      - key: PICS
+        sync: True
+      - key: WEBHOOK
+        sync: True
+        - key: CHANNELS
+        sync: False
+        - key: AUTH_CHANNEL
+        sync: False
+        - key: CUSTOM_FILE_CAPTION
+        sync: False
+        - key: MAX_RIST_BTNS
+        sync: False
+        - key: COLLECTION_NAME
+        sync: True
+        - key: SUPPORT_CHAT
+        sync: True
+        - key: IMDB
+        sync: True
+        - key: PM_IMDB
+        sync: True
+        - key: IMDB_TEMPLATE
+        sync: True
+         - key: IMDB_DELET_TIME
+        sync: True
+         - key: SINGLE_BUTTON
+        sync: True
+         - key: START_MESSAGE
+        sync: True
+         - key: FORCE_SUB_TEXT
+        sync: True
+         - key: WELCOM_PIC
+        sync: True
+         - key: WELCOM_TEXT
+        sync: True
+         - key: BUTTON_LOCK_TEXT
+        sync: True
+         - key: PMFILTER
+        sync: True
+         - key: G_FILTER
+        sync: True
+         - key: BUTTON_LOCK
+        sync: True
+         - key: P_TTI_SHOW_OFF
+        sync: True
+        - key: ADMINS
+        sync: True
+             

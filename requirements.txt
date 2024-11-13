@@ -1,0 +1,36 @@
+# --Main---- #
+pyrofork
+tgcrypto
+aiofiles
+aiohttp
+requests
+bs4
+
+# ---database--- #
+pymongo
+dnspython
+marshmallow
+umongo
+motor
+
+# ---ytdl---- #
+youtube-search-python
+youtube-search
+yt-dlp
+
+# ---imdb--- #
+cinemagoer==2023.5.1
+
+# ---others---- #
+opencv-python-headless
+googletrans
+telegraph
+python-dotenv
+gTTS
+Pillow
+psutil
+NumPy
+wheel
+ujson
+wget
+pytz
