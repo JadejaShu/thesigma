@@ -90,6 +90,9 @@ async def set_skip_number(bot, message):
         await message.reply("Give Me A Skip Number")
 
 
+import asyncio
+from pyrogram.errors import FloodWait
+
 async def index_files_to_db(lst_msg_id, chat, msg, bot):
     total_files = 0
     duplicate = 0
@@ -99,39 +102,34 @@ async def index_files_to_db(lst_msg_id, chat, msg, bot):
     unsupported = 0
     processed = 0
     batch_size = 100  # Number of messages processed before reporting progress
-    max_parallel_tasks = 10  # Maximum number of parallel tasks to process files
+    update_interval = 10  # Update message every 'update_interval' processed messages
 
     async with lock:
         try:
             current = temp.CURRENT
             temp.CANCEL = False
-            messages_to_process = []
-
-            # Fetch the messages in parallel
+            # Start processing messages
             async for message in bot.iter_messages(chat, lst_msg_id, temp.CURRENT):
-                messages_to_process.append(message)
-
-            # Parallel process the messages in batches
-            async def process_message(message):
-                nonlocal total_files, duplicate, errors, deleted, no_media, unsupported, processed
                 processed += 1
                 if temp.CANCEL:
-                    return  # Stop processing if cancelled
+                    # User cancelled the operation
+                    await msg.edit(f"Indexing Cancelled! Processed {processed} messages.")
+                    break
 
                 if message.empty:
                     deleted += 1
-                    return
+                    continue
                 if not message.media:
                     no_media += 1
-                    return
+                    continue
                 if message.media not in [enums.MessageMediaType.VIDEO, enums.MessageMediaType.AUDIO, enums.MessageMediaType.DOCUMENT]:
                     unsupported += 1
-                    return
+                    continue
 
                 media = getattr(message, message.media.value, None)
                 if not media:
                     unsupported += 1
-                    return
+                    continue
 
                 # Process the file and save to DB
                 try:
@@ -148,16 +146,11 @@ async def index_files_to_db(lst_msg_id, chat, msg, bot):
                     logger.error(f"Error saving media: {e}")
                     errors += 1
 
-            # Process messages in parallel (using async gather with limited concurrency)
-            tasks = []
-            with ThreadPoolExecutor(max_workers=max_parallel_tasks) as executor:
-                for message in messages_to_process:
-                    tasks.append(executor.submit(process_message, message))
+                # Update progress message every 'update_interval' messages
+                if processed % update_interval == 0:
+                    await update_progress(msg, processed, total_files, duplicate, deleted, no_media, unsupported, errors)
 
-            # Wait for all tasks to finish
-            await asyncio.gather(*tasks)
-
-            # Progress message
+            # Final message after processing
             await msg.edit(
                 f"Indexing Completed!\n\n"
                 f"Processed Messages: <code>{processed}</code>\n"
@@ -171,3 +164,18 @@ async def index_files_to_db(lst_msg_id, chat, msg, bot):
         except Exception as e:
             logger.exception(f"Unexpected error: {e}")
             await msg.edit(f"Error during indexing: <code>{e}</code>")
+
+async def update_progress(msg, processed, total_files, duplicate, deleted, no_media, unsupported, errors):
+    try:
+        await msg.edit(
+            f"Indexing in Progress...\n\n"
+            f"Processed Messages: <code>{processed}</code>\n"
+            f"Files Saved: <code>{total_files}</code>\n"
+            f"Duplicate Files: <code>{duplicate}</code>\n"
+            f"Deleted Messages: <code>{deleted}</code>\n"
+            f"Non-Media Skipped: <code>{no_media + unsupported}</code>\n"
+            f"Errors: <code>{errors}</code>"
+        )
+    except FloodWait as t:
+        await asyncio.sleep(t.value)
+        await update_progress(msg, processed, total_files, duplicate, deleted, no_media, unsupported, errors)
