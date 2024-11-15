@@ -55,7 +55,7 @@ class Bot(Client):
         if bool(WEB_SUPPORT) is True:
             app = web.AppRunner(web.Application(client_max_size=30000000))
             await app.setup()
-            await web.TCPSite(app, "0.0.0.0", 8080).start()
+            await web.TCPSite(app, "0.0.0.0", 8081).start()
             logger.info("Web Response Is Running......🕸️")
             
     async def stop(self, *args):
